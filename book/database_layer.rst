@@ -91,8 +91,6 @@ class via annotations:
 
     .. code-block:: php-annotations
 
- TODO FIX ANNOTATION COMMENTS
-
         // src/Acme/TaskBundle/Document/Task.php
         namespace Acme\TaskBundle\Document;
 
