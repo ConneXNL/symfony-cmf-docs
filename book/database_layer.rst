@@ -100,27 +100,27 @@ class via annotations:
 
         /**
          * @PHPCR\Document()
-         *
+         */
         class Task
         {
             /**
              * @PHPCR\Id()
-             *
+             */
             protected $id;
 
             /**
              * @PHPCR\String()
-             *
+             */
             protected $description;
 
             /**
              * @PHPCR\Boolean()
-             *
+             */
             protected $done = false;
 
             /**
              * @PHPCR\ParentDocument()
-             *
+             */
             protected $parent;
         }
 
