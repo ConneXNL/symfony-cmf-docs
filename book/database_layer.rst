@@ -7,7 +7,7 @@ The Database Layer: PHPCR-ODM
 
 The Symfony CMF is storage layer agnostic, meaning that it can work with many
 storage layers. By default, the Symfony CMF works with the `Doctrine PHPCR-ODM`_.
-In this chapter, you'll learn how to work with the Doctrine PHPCR-ODM.
+In this chapter, you will learn how to work with the Doctrine PHPCR-ODM.
 
 .. tip::
 
@@ -62,8 +62,16 @@ in PHP::
         protected $done = false;
     }
 
-The class - often called a "document" in the ODM - is a simple PHP class which
-can't be persisted yet.
+The class - often called a "document" in PHPCR-ODM, meaning *a basic class
+that holds data* - is simple and helps fulfill the business requirement of
+needing tasks in your application. This class can't be persisted to
+Doctrine PHPCR-ODM yet - it's just a simple PHP class.
+
+.. note::
+
+    A Document is analogous to the term ``Entity`` employed by the Doctrine ORM.
+    You must add this object to the ``Document`` namespace, in order register
+    the mapping data automatically.
 
 Add Mapping Information
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -223,12 +231,10 @@ AcmeTaskBundle::
 
 .. sidebar:: Creating the Root Node
 
-    You'll wonder where the root node ``/tasks`` is coming from. This is the
-    root node of the tasks and it doesn't exists yet. To create this root
-    node, it is recommend to use :ref:`Repository Initializers
-    <phpcr-odm-repository-initializers>`.  These will be executed when
-    executing ``doctrine:phpcr:repository:init`` and should create all
-    required root nodes.
+    You'll wonder where the root document ``/tasks`` is coming from. You can
+    configure an :ref:`Repository Initializer <phpcr-odm-repository-initializers>`
+    that will create this document.  Initializers will be executed when
+    running ``doctrine:phpcr:repository:init``.
 
 .. _`Doctrine PHPCR-ODM`: http://docs.doctrine-project.org/projects/doctrine-phpcr-odm/en/latest/index.html
 .. _`PHP Content Repository`: http://phpcr.github.io/
