@@ -355,6 +355,20 @@ As you might expect, the ``remove()`` method notifies Doctrine that you'd like t
 remove the given document from PHPCR. The actual delete operation
 however, isn't actually executed until the ``flush()`` method is called.
 
+Summary
+-------
+
+With Doctrine, you can focus on your objects and how they're useful in your
+application and worry about database persistence second. This is because
+Doctrine allows you to use any PHP object to hold your data and relies on
+mapping metadata information to map an object's data to a particular database
+table.
+
+And even though Doctrine revolves around a simple concept, it's incredibly
+powerful, allowing you to create complex queries and subscribe to events that
+allow you to take different actions as objects go through their persistence
+lifecycle.
+
 .. _`Doctrine PHPCR-ODM`: http://docs.doctrine-project.org/projects/doctrine-phpcr-odm/en/latest/index.html
 .. _`PHP Content Repository`: http://phpcr.github.io/
 .. _`JSR-283 specifation`: http://jcp.org/en/jsr/detail?id=283
