@@ -204,37 +204,156 @@ AcmeTaskBundle::
     {
         $documentManager = $this->get('doctrine_phpcr')->getManager();
 
-        // get the root node for tasks
         $rootTask = $documentManager->find(null, '/tasks');
 
-        // create a new task (just like an object)
         $task = new Task();
         $task->setDescription('Finish CMF project');
         $task->setParent($rootTask);
 
-        // persist the task into the db
         $documentManager->persist($task);
 
-        // save the actions
         $documentManager->flush();
 
         return new Response('Created task "'.$task->getDescription().'"');
     }
 
-.. note::
+Take a look at the previous example in more detail:
 
-    The example uses the ``find`` method of the document manager to get the
-    documents. You can also use Repositories, but this requires to know the
-    class of a node in the tree. Unless you want to do specific things, it's
-    recommend to use the document manager's ``find`` and ``findAll`` methods
-    to find documents.
+* **line 10** This line fetches Doctrine's *document manager* object, which is
+  responsible for handling the process of persisting and fetching objects to
+  and from PHPCR.
+* **line 12** This line fetches the root document for the tasks, as each
+  Document needs to have a parent. To create this root document, you can
+  configure a :ref:`Repository Initializer <phpcr-odm-repository-initializers>`,
+  which will be executed when running ``doctrine:phpcr:repository:init``.
+* **lines 14-16** In this section, you instantiate and work with the ``$task``
+  object like any other, normal PHP object.
+* **line 18** The ``persist()`` method tells Doctrine to "manage" the
+  ``$task`` object. This does not actually cause a query to be made to PHPCR
+  (yet).
+* **line 20** When the ``flush()`` method is called, Doctrine looks through
+  all of the objects that it's managing to see if they need to be persisted to
+  PHPCR. In this example, the ``$task`` object has not been persisted yet, so
+  the document manager makes a query to PHPCR, which adds a new document.
 
-.. sidebar:: Creating the Root Node
+When creating or updating objects, the workflow is always the same. In the
+next section, you'll see how Doctrine is smart enough to update documents if
+they already exist in PHPCR.
 
-    You'll wonder where the root document ``/tasks`` is coming from. You can
-    configure an :ref:`Repository Initializer <phpcr-odm-repository-initializers>`
-    that will create this document.  Initializers will be executed when
-    running ``doctrine:phpcr:repository:init``.
+Fetching Objects from PHPCR
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Fetching an object back out of PHPCR is even easier. For example, suppose
+you've configured a route to display a specific task by name::
+
+    public function showAction($id)
+    {
+        $repository = $this->get('doctrine_phpcr')->getRepository('AcmeTaskBundle:Task');
+        $task = $repository->find('/task/'.$id);
+
+        if (!$task) {
+            throw $this->createNotFoundException('No task found for id '.$name);
+        }
+
+        return new Response('['.($task->isDone() ? 'x' : ' ').'] '.$task->getDescription());
+    }
+
+To query for objects, you can use both the ``find`` and ``findAll`` methods of
+the document manager and all helper methods of a class-specific repository. In
+PHPCR, it's often unkown for developers which node has the data for a specific
+document, in that case you should use the document manager to find the nodes
+(for instance, when you want to get the root document). In this case, we know
+they are ``Task`` documents and so we can use the repository.
+
+The repository contains all sorts of helpful methods::
+
+    // query by the id (full path)
+    $task = $repository->find($id);
+
+    // dynamic method names to find based on a column value
+    $task = $repository->findOneById($id);
+    $task = $repository->findOneByDescription('foo');
+
+    // find *all* tasks
+    $tasks = $repository->findAll();
+
+    // find a group of tasks based on an arbitrary column value
+    $tasks = $repository->findByDone(true);
+
+You can also take advantage of the useful ``findBy`` and ``findOneBy`` methods to
+easily fetch objects based on multiple conditions::
+
+    // query for one task matching be name and done
+    $task = $repository->findOneBy(array('name' => 'foo', 'done' => false));
+
+    // query for all tasks matching the name, ordered by done
+    $tasks = $repository->findBy(
+        array('name' => 'foo'),
+        array('done' => 'ASC')
+    );
+
+.. tip::
+
+    If you use the repository class, you can also create a custom repository
+    for a specific document. This helps Seperation of Concern when using more
+    complex queries. This is similair to how it's done in Doctrine ORM, for
+    more information read "`Custom Repository Classes`_" in the core
+    documentation.
+
+.. tip::
+
+    You can also query objects by using the Query Builder provided by
+    Doctrine PHPCR-ODM. For more information, read
+    `the QueryBuilder documentation`_.
+
+Updating an Object
+~~~~~~~~~~~~~~~~~~
+
+Once you've fetched an object from Doctrine, updating it is easy. Suppose you
+have a route that maps a task id to an update action in a controller::
+
+    public function updateAction($name)
+    {
+        $documentManager = $this->get('doctrine_phpcr')->getManager();
+        $repository = $documentManager->getRepository('AcmeTaskBundle:Task');
+        $task = $repository->find('/tasks/'.$name);
+
+        if (!$task) {
+            throw $this->createNotFoundException('No task found for id '.$name);
+        }
+
+        if (!$task->isDone()) {
+            $task->setDone(true);
+        }
+
+        $documentManager->flush();
+
+        return new Response('[x] '.$task->getDescription());
+    }
+
+Updating an object involves just three steps:
+
+#. fetching the object from Doctrine;
+#. modifying the object;
+#. calling ``flush()`` on the document manager
+
+Notice that calling ``$documentManger->persist($task)`` isn't necessary.
+Recall that this method simply tells Doctrine to manage or "watch" the
+``$task`` object. In this case, since you fetched the ``$task`` object from
+Doctrine, it's already managed.
+
+Deleting an Object
+~~~~~~~~~~~~~~~~~~
+
+Deleting an object is very similar, but requires a call to the ``remove()`` method
+of the document manager after you fetched the document from PHPCR::
+
+    $documentManager->remove($task);
+    $documentManager->flush();
+
+As you might expect, the ``remove()`` method notifies Doctrine that you'd like to
+remove the given document from PHPCR. The actual delete operation
+however, isn't actually executed until the ``flush()`` method is called.
 
 .. _`Doctrine PHPCR-ODM`: http://docs.doctrine-project.org/projects/doctrine-phpcr-odm/en/latest/index.html
 .. _`PHP Content Repository`: http://phpcr.github.io/
@@ -246,3 +365,5 @@ AcmeTaskBundle::
 .. _`jackalope-doctrine-dbal`: https://github.com/jackalope/jackalope-doctrine-dbal
 .. _`doctrine documentation`: http://docs.doctrine-project.org/projects/doctrine-phpcr-odm/en/latest/reference/basic-mapping.html#basicmapping-identifier-generation-strategies
 .. _`Basic Mapping Documentation`: http://docs.doctrine-project.org/projects/doctrine-phpcr-odm/en/latest/reference/annotations-reference.html
+.. _`the QueryBuilder documentation`: http://docs.doctrine-project.org/projects/doctrine-phpcr-odm/en/latest/reference/query-builder.html
+.. _`Custom Repository Class`: http://symfony.com/doc/current/book/doctrine.html#custom-repository-classes
