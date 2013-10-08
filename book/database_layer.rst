@@ -369,7 +369,7 @@ lifecycle.
 
 .. _`Doctrine PHPCR-ODM`: http://docs.doctrine-project.org/projects/doctrine-phpcr-odm/en/latest/index.html
 .. _`PHP Content Repository`: http://phpcr.github.io/
-.. _`JSR-283 specifation`: http://jcp.org/en/jsr/detail?id=283
+.. _`JSR-283 specification`: http://jcp.org/en/jsr/detail?id=283
 .. _`Doctrine ORM`: http://symfony.com/doc/current/book/doctrine.html
 .. _`Jackalope`: http://jackalope.github.io/
 .. _`Apache Jackrabbit`: http://jackrabbit.apache.org/
